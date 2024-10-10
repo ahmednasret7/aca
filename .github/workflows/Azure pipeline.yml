@@ -1,0 +1,67 @@
+# src: .github/workflows/
+name: Build and deploy a container to an Azure Container Apps - ACA
+
+env:
+  IMAGE_NAME: ahmednasret7/azureci-image1
+  CONTAINERAPPS_APP: album-backend-api
+  CONTAINERAPPS_ENVIRONMENT: aca-env1
+  RESOURCE_GROUP: rg-containerapps-github-actions
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push-container-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to Docker hub
+        uses: docker/login-action@v1.10.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push container image to Docker hub
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: docker.io/${{ env.IMAGE_NAME }}:${{ github.run_number }}
+          file: ./backend_api/backend_api_csharp/Dockerfile
+          context: ./backend_api/backend_api_csharp
+
+  deploy-to-container-apps:
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    needs: build-push-container-image
+
+    steps:
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build and deploy Container App
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        registryUrl: docker.io
+        imageToDeploy: docker.io/${{ env.IMAGE_NAME }}:${{ github.run_number }}
+        targetPort: 3500
+        ingress: external
+        containerAppName: ${{ env.CONTAINERAPPS_APP }}
+        containerAppEnvironment: ${{ env.CONTAINERAPPS_ENVIRONMENT }}
+        resourceGroup: ${{ env.RESOURCE_GROUP }}
