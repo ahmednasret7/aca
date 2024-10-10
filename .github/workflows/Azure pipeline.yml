@@ -2,16 +2,12 @@
 name: Build and deploy a container to an Azure Container Apps - ACA
 
 env:
-  IMAGE_NAME: ahmednasret7/azureci-image1
+  IMAGE_NAME: ahmednasr7/azureci-image1
   CONTAINERAPPS_APP: album-backend-api
   CONTAINERAPPS_ENVIRONMENT: aca-env1
-  RESOURCE_GROUP: rg-containerapps-github-actions
+  RESOURCE_GROUP: rg-containerapps-workshop1
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
