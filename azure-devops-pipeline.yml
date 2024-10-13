@@ -49,7 +49,7 @@ stages:
     - task: AzureCLI@2
       displayName: 'Deploy to Azure Container App Task'
       inputs:
-        azureSubscription: 'azure-connection' # Use the Azure service connection for deployment
+        azureSubscription: 'Azure-connection-ahmednasret7' # Use the Azure service connection for deployment
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
