@@ -19,10 +19,10 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build and push image
+  displayName: 'Build and push image'
   jobs:
   - job: BuildAndDeploy
-    displayName: Build and Deploy Container to Azure
+    displayName: 'Build and Deploy Container to Azure'
     pool:
       vmImage: ubuntu-latest
 
@@ -42,13 +42,13 @@ stages:
   displayName: deploy to azure container apps
   jobs:
   - job: Deploy
-    desplayName: Deploy to azure container apps job
+    desplayName: 'Deploy to azure container apps job'
     pool:
       vmImage: ubuntu-latest
     steps:
     # Deploy the container to Azure Container Apps
     - task: AzureCLI@2
-      displayName: Deploy to Azure Container App task
+      displayName: 'Deploy to Azure Container App task'
       inputs:
         azureSubscription: 'azure-connection' # Use the Azure service connection for deployment
         scriptType: 'bash'
