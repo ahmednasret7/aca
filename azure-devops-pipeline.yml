@@ -26,7 +26,7 @@ jobs:
         containerRegistry: 'ahmednasr7-dockerhub' # Name of your Docker Hub service connection
         repository: '$(IMAGE_NAME)'
         command: 'buildAndPush'
-        Dockerfile: './backend_api/backend_api_csharp/Dockerfile'
+        dockerfile: './backend_api/backend_api_csharp/Dockerfile'
         tags: '$(Build.BuildId)' # Or any other tag you prefer
         buildContext: './backend_api/backend_api_csharp'
 
