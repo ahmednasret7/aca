@@ -1,0 +1,92 @@
+trigger: none
+pr: none
+
+variables:
+  IMAGE_NAME: ahmednasr7/azureui-image1
+  CONTAINERAPPS_APP1: album-api
+  CONTAINERAPPS_APP2: album-ui
+  CONTAINERAPPS_ENVIRONMENT: aca-env1
+  RESOURCE_GROUP: rg-containerapps-workshop1
+  ACR_NAME: acrworkshop0021
+  IDENTITY: identity-aca-acr
+  TAG: '$(Build.BuildId)'
+  LOCATION: 'westeurope'
+
+stages:
+- stage: Deploy
+  displayName: 'Deploy to Azure Container Apps'
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy to Azure Container Apps Job'
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+    # Deploy the container to Azure Container Apps
+    - task: AzureCLI@2
+      displayName: 'Deploy to Azure Container App Task'
+      inputs:
+        azureSubscription: 'Azure-connection-ahmednasret7' # Use the Azure service connection for deployment
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Create the Container Apps environment if it doesn't exist
+          az containerapp env create --name $(CONTAINERAPPS_ENVIRONMENT) --resource-group $(RESOURCE_GROUP) --location $(LOCATION)
+
+          az acr create \
+            --resource-group $(RESOURCE_GROUP) \
+            --name $(ACR_NAME) \
+            --sku Basic \
+            --admin-enabled true
+
+          # Build backend using ACR
+          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP1) ..\backend_api\backend_api_csharp\
+          
+          # Create identity for the container app
+          az identity create --resource-group $(RESOURCE_GROUP) --name $(IDENTITY)
+
+          IDENTITY_CLIENT_ID=$(az identity show --resource-group $(RESOURCE_GROUP) --name $(IDENTITY) --query clientId -o tsv)
+
+          ACR_ID=$(az acr show --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --query id -o tsv)
+
+          # Assign role to the identity
+          az role assignment create \
+            --role AcrPull \
+            --assignee $IDENTITY_CLIENT_ID \
+            --scope $ACR_ID
+
+          # Get identity resource ID
+          IDENTITY_RESOURCE_ID=$(az identity show --resource-group $(RESOURCE_GROUP) --name $(IDENTITY) --query id -o tsv)
+          echo $IDENTITY_RESOURCE_ID
+
+          # Create the container app and deploy the container image
+          az containerapp create --name $(CONTAINERAPPS_APP1) \
+            --resource-group $(RESOURCE_GROUP) \
+            --environment $(CONTAINERAPPS_ENVIRONMENT) \
+            --image $(ACR_NAME).azurecr.io/$(CONTAINERAPPS_APP1) \
+            --target-port 3500 \
+            --ingress internal \
+            --registry-server $(ACR_NAME).azurecr.io \
+            --user-assigned $IDENTITY_RESOURCE_ID \
+            --registry-identity $IDENTITY_RESOURCE_ID \
+            --query properties.configuration.ingress.fqdn
+
+          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP2) ..\frontend_ui\ 
+
+          # Communication between container apps deployed into an internal endpoint
+          API_BASE_URL=$(az containerapp show --resource-group $(RESOURCE_GROUP) --name $(CONTAINERAPPS_APP1) --query properties.configuration.ingress.fqdn -o tsv)
+          echo $API_BASE_URL
+
+          # Create the container app for UI and deploy the image
+          az containerapp create \
+            --name $(CONTAINERAPPS_APP2) \
+            --resource-group $(RESOURCE_GROUP) \
+            --environment $(CONTAINERAPPS_ENVIRONMENT) \
+            --image $(ACR_NAME).azurecr.io/$(CONTAINERAPPS_APP2) \
+            --target-port 3000 \
+            --env-vars API_BASE_URL=https://$API_BASE_URL \
+            --ingress external \
+            --registry-server $(ACR_NAME).azurecr.io \
+            --user-assigned $IDENTITY_RESOURCE_ID \
+            --registry-identity $IDENTITY_RESOURCE_ID \
+            --query properties.configuration.ingress.fqdn
