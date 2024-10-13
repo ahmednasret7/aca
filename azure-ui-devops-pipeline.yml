@@ -23,7 +23,7 @@ stages:
 
     steps:
     #Checkout repo
-    - checkout: git:https://github.com/ahmednasret7/aca.git
+    - checkout: self
       displayName: 'Checkout GitHub Repo'
     # Deploy the container to Azure Container Apps
     - task: AzureCLI@2
@@ -43,7 +43,7 @@ stages:
             --admin-enabled true
 
           # Build backend using ACR
-          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP1) ..\backend_api\backend_api_csharp\
+          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP1):$(TAG) ./backend_api/backend_api_csharp/
           
           # Create identity for the container app
           az identity create --resource-group $(RESOURCE_GROUP) --name $(IDENTITY)
@@ -74,7 +74,7 @@ stages:
             --registry-identity $IDENTITY_RESOURCE_ID \
             --query properties.configuration.ingress.fqdn
 
-          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP2) ..\frontend_ui\ 
+          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP2):$(TAG) ./frontend_ui/ 
 
           # Communication between container apps deployed into an internal endpoint
           API_BASE_URL=$(az containerapp show --resource-group $(RESOURCE_GROUP) --name $(CONTAINERAPPS_APP1) --query properties.configuration.ingress.fqdn -o tsv)
