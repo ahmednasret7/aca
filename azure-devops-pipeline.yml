@@ -8,14 +8,12 @@ trigger:
     exclude:
     - Readme.md
 
-
 variables:
   IMAGE_NAME: ahmednasr7/azureci-image1
   CONTAINERAPPS_APP: album-backend-api
   CONTAINERAPPS_ENVIRONMENT: aca-env1
   RESOURCE_GROUP: rg-containerapps-workshop1
   TAG: '$(Build.BuildId)'
-
 
 stages:
 - stage: Build
@@ -39,16 +37,17 @@ stages:
           buildContext: './backend_api/backend_api_csharp'
 
 - stage: Deploy
-  displayName: deploy to azure container apps
+  displayName: 'Deploy to Azure Container Apps'
   jobs:
   - job: Deploy
-    desplayName: 'Deploy to azure container apps job'
+    displayName: 'Deploy to Azure Container Apps Job'
     pool:
       vmImage: ubuntu-latest
+
     steps:
     # Deploy the container to Azure Container Apps
     - task: AzureCLI@2
-      displayName: 'Deploy to Azure Container App task'
+      displayName: 'Deploy to Azure Container App Task'
       inputs:
         azureSubscription: 'azure-connection' # Use the Azure service connection for deployment
         scriptType: 'bash'
