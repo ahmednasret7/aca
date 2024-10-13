@@ -1,38 +1,54 @@
-trigger: none
-pr: none
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - azure-devops-pipelines.yml
+    exclude:
+    - Readme.md
 
-pool:
-  vmImage: 'ubuntu-latest'
 
 variables:
-  IMAGE_NAME: 'ahmednasr7/azureci-image1'
-  CONTAINERAPPS_APP: 'album-backend-api'
-  CONTAINERAPPS_ENVIRONMENT: 'aca-env1'
-  RESOURCE_GROUP: 'rg-containerapps-workshop1'
+  IMAGE_NAME: ahmednasr7/azureci-image1
+  CONTAINERAPPS_APP: album-backend-api
+  CONTAINERAPPS_ENVIRONMENT: aca-env1
+  RESOURCE_GROUP: rg-containerapps-workshop1
+  TAG: '$(Build.BuildId)'
 
-jobs:
-- job: BuildAndDeploy
-  displayName: 'Build and Deploy Container to Azure'
 
-  steps:
-    # Checkout the code from the repository
-    - task: Checkout@v2
-      displayName: 'Checkout repository'
-      
+stages:
+- stage: Build
+  displayName: Build and push image
+  jobs:
+  - job: BuildAndDeploy
+    displayName: Build and Deploy Container to Azure
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:      
     # Build and Push Docker Image to Docker Hub using Service Connection
-    - task: Docker@2
-      displayName: 'Build and Push Docker Image to Docker Hub'
-      inputs:
-        containerRegistry: 'ahmednasr7-dockerhub' # Name of your Docker Hub service connection
-        repository: '$(IMAGE_NAME)'
-        command: 'buildAndPush'
-        dockerfile: './backend_api/backend_api_csharp/Dockerfile'
-        tags: '$(Build.BuildId)' # Or any other tag you prefer
-        buildContext: './backend_api/backend_api_csharp'
+      - task: Docker@2
+        displayName: 'Build and Push Docker Image to Docker Hub'
+        inputs:
+          containerRegistry: 'ahmednasr7-dockerhub' # Name of your Docker Hub service connection
+          repository: '$(IMAGE_NAME)'
+          command: 'buildAndPush'
+          dockerfile: './backend_api/backend_api_csharp/Dockerfile'
+          tags: $(TAG) # Or any other tag you prefer
+          buildContext: './backend_api/backend_api_csharp'
 
+- stage: Deploy
+  displayName: deploy to azure container apps
+  jobs:
+  - job: Deploy
+    desplayName: Deploy to azure container apps job
+    pool:
+      vmImage: ubuntu-latest
+    steps:
     # Deploy the container to Azure Container Apps
     - task: AzureCLI@2
-      displayName: 'Deploy to Azure Container App'
+      displayName: Deploy to Azure Container App task
       inputs:
         azureSubscription: 'azure-connection' # Use the Azure service connection for deployment
         scriptType: 'bash'
