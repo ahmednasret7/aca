@@ -45,7 +45,7 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku Basic --admin-enabled true
+          az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku standard --admin-enabled true
 
     # Step 3: Build backend API image using ACR
     - task: AzureCLI@2
