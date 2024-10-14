@@ -51,7 +51,7 @@ stages:
     - task: Docker@2
       displayName: 'Build backend using docker'
       inputs:
-        containerRegistry: $(ACR_NAME)  # Service connection to ACR
+        containerRegistry: $(AZURE_CONNECTION)  # Service connection to ACR
         repository: '$(CONTAINERAPPS_APP1)'
         command: 'buildAndPush'
         Dockerfile: '**/backend_api/backend_api_csharp/Dockerfile'
@@ -87,7 +87,7 @@ stages:
     - task: Docker@2
       displayName: 'Build Frontend UI Image'
       inputs:
-        containerRegistry: $(ACR_NAME)
+        containerRegistry: $(AZURE_CONNECTION)
         repository: '$(CONTAINERAPPS_APP2)'
         command: 'buildAndPush'
         Dockerfile: '**/frontend_ui/Dockerfile'
