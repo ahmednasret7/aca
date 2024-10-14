@@ -49,6 +49,7 @@ stages:
 
     # Step 3: Build backend API image using ACR
     - task: Docker@2
+      displayName: 'Build backend using docker'
       inputs:
         containerRegistry: '$(ACR_NAME)'  # Service connection to ACR
         repository: '$(CONTAINERAPPS_APP1)'
