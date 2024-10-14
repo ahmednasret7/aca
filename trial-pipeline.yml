@@ -48,14 +48,14 @@ stages:
           az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku standard --admin-enabled true
 
     # Step 3: Build backend API image using ACR
-    - task: AzureCLI@2
-      displayName: 'Build Backend API Image'
+    - task: Docker@2
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP1):$(TAG) ./backend_api/backend_api_csharp/
+        containerRegistry: '$(ACR_NAME)'  # Service connection to ACR
+        repository: '$(CONTAINERAPPS_APP1)'
+        command: 'buildAndPush'
+        Dockerfile: '**/backend_api/backend_api_csharp/Dockerfile'
+        tags: |
+         $(Build.BuildId)
 
     # Step 4: Create Managed Identity
     - task: AzureCLI@2
@@ -83,15 +83,15 @@ stages:
           az containerapp create --name $(CONTAINERAPPS_APP1) --resource-group $(RESOURCE_GROUP) --environment $(CONTAINERAPPS_ENVIRONMENT) --image $(ACR_NAME).azurecr.io/$(CONTAINERAPPS_APP1):$(TAG) --target-port 3500 --ingress internal --registry-server $(ACR_NAME).azurecr.io --user-assigned $IDENTITY_RESOURCE_ID --registry-identity $IDENTITY_RESOURCE_ID
 
     # Step 6: Build frontend UI image using ACR
-    - task: AzureCLI@2
+    - task: Docker@2
       displayName: 'Build Frontend UI Image'
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az acr build --registry $(ACR_NAME) --image $(CONTAINERAPPS_APP2):$(TAG) ./frontend_ui/
-
+        containerRegistry: '$(ACR_NAME)'
+        repository: '$(CONTAINERAPPS_APP2)'
+        command: 'buildAndPush'
+        Dockerfile: '**/frontend_ui/Dockerfile'
+        tags: |
+         $(Build.BuildId)
     # Step 7: Deploy Frontend UI Container App
     - task: AzureCLI@2
       displayName: 'Deploy Frontend UI Container App'
