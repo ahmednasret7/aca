@@ -51,18 +51,17 @@ stages:
     - task: Docker@2
       displayName: 'Build backend using docker'
       inputs:
-        containerRegistry: $(AZURE_CONNECTION)  # Service connection to ACR
+        containerRegistry: 'acrworkshop0021'
         repository: '$(CONTAINERAPPS_APP1)'
         command: 'buildAndPush'
         Dockerfile: '**/backend_api/backend_api_csharp/Dockerfile'
-        tags: |
-         $(Build.BuildId)
+        tags: '$(Build.BuildId)'
 
     # Step 4: Create Managed Identity
     - task: AzureCLI@2
       displayName: 'Create Managed Identity'
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
+        azureSubscription: 'azure-cli-2024-10-14-06-24-51'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
@@ -76,7 +75,7 @@ stages:
     - task: AzureCLI@2
       displayName: 'Deploy Backend API Container App'
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
+        azureSubscription: 'azure-cli-2024-10-14-06-24-51'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
@@ -87,17 +86,16 @@ stages:
     - task: Docker@2
       displayName: 'Build Frontend UI Image'
       inputs:
-        containerRegistry: $(AZURE_CONNECTION)
+        containerRegistry: 'acrworkshop0021'
         repository: '$(CONTAINERAPPS_APP2)'
         command: 'buildAndPush'
         Dockerfile: '**/frontend_ui/Dockerfile'
-        tags: |
-         $(Build.BuildId)
+        tags: '$(Build.BuildId)'
     # Step 7: Deploy Frontend UI Container App
     - task: AzureCLI@2
       displayName: 'Deploy Frontend UI Container App'
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
+        azureSubscription: 'azure-cli-2024-10-14-06-24-51'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
