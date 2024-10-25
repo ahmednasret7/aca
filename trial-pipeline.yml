@@ -31,21 +31,19 @@ stages:
     - task: AzureCLI@2
       displayName: 'Create Container Apps Environment'
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
+        azureSubscription: 'azure-cli-2024-10-14-06-24-51'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: |
-          az containerapp env create --name $(CONTAINERAPPS_ENVIRONMENT) --resource-group $(RESOURCE_GROUP) --location $(LOCATION)
+        inlineScript: 'az containerapp env create --name $(CONTAINERAPPS_ENVIRONMENT) --resource-group $(RESOURCE_GROUP) --location $(LOCATION)'
 
     # Step 2: Create Azure Container Registry (ACR)
     - task: AzureCLI@2
       displayName: 'Create ACR'
       inputs:
-        azureSubscription: $(AZURE_CONNECTION)
+        azureSubscription: 'azure-cli-2024-10-14-06-24-51'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: |
-          az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku standard --admin-enabled true
+        inlineScript: 'az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku standard --admin-enabled true'
 
     # Step 3: Build backend API image using ACR
     - task: Docker@2
